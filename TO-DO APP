@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster To-Do List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .completed { text-decoration: line-through; opacity: 0.6; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-6 bg-blue-600 text-white">
+            <h1 class="text-2xl font-bold">TaskMaster</h1>
+            <p class="text-blue-100 text-sm">Organize your day efficiently</p>
+        </div>
+        
+        <div class="p-6">
+            <!-- Add Task Form -->
+            <form id="taskForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <input type="text" id="taskInput" placeholder="What needs to be done?" class="md:col-span-2 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none" required>
+                <input type="text" id="catInput" placeholder="Category (e.g. Work, Home)" class="p-2 border rounded outline-none">
+                <input type="datetime-local" id="dateInput" class="p-2 border rounded outline-none">
+                <button type="submit" class="md:col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Add Task</button>
+            </form>
+
+            <!-- Task List -->
+            <div id="taskList" class="space-y-3">
+                <!-- Tasks will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        const taskForm = document.getElementById('taskForm');
+        const taskList = document.getElementById('taskList');
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const div = document.createElement('div');
+                div.className = `flex flex-col p-3 border rounded shadow-sm ${task.completed ? 'bg-gray-50' : 'bg-white'}`;
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="${task.completed ? 'completed' : ''}">
+                            <h3 class="font-semibold">${task.text}</h3>
+                            <span class="text-xs bg-gray-200 px-2 py-0.5 rounded">${task.category || 'General'}</span>
+                            <p class="text-xs text-gray-500 mt-1">${task.date ? new Date(task.date).toLocaleString() : 'No date'}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="toggleTask(${index})" class="text-green-600">✓</button>
+                            <button onclick="deleteTask(${index})" class="text-red-600">✕</button>
+                        </div>
+                    </div>
+                `;
+                taskList.appendChild(div);
+            });
+        }
+
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const task = {
+                text: document.getElementById('taskInput').value,
+                category: document.getElementById('catInput').value,
+                date: document.getElementById('dateInput').value,
+                completed: false
+            };
+            tasks.push(task);
+            taskForm.reset();
+            saveTasks();
+        });
+
+        window.toggleTask = (index) => {
+            tasks[index].completed = !tasks[index].completed;
+            saveTasks();
+        };
+
+        window.deleteTask = (index) => {
+            tasks.splice(index, 1);
+            saveTasks();
+        };
+
+        renderTasks();
+    </script>
+</body>
+</html>
